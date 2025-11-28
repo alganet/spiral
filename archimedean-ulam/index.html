@@ -1,0 +1,52 @@
+<!--
+SPDX-FileCopyrightText: 2025 Alexandre Gomes Gaigalas <alganet@gmail.com>
+
+SPDX-License-Identifier: ISC
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archimedean Spiral</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Archimedean Spiral</h1>
+        <canvas id="spiralCanvas"></canvas>
+        <div class="legend">
+            <span class="toolbar-status" id="status"></span>
+            <button class="regenerate-btn" id="resetBtn" title="Generate spiral">Generate</button>
+            <button class="toggle-btn active" id="fitToggle" title="Toggle canvas fit to viewport">Fit</button>
+            <div class="legend-divider"></div>
+            <div class="legend-item">
+                <input type="color" class="color-picker" data-color="prime" title="Change prime color">
+                Prime
+            </div>
+            <div class="legend-item">
+                <input type="color" class="color-picker" data-color="muNeg" title="Change μ = -1 color">
+                μ = -1
+            </div>
+            <div class="legend-item">
+                <input type="color" class="color-picker" data-color="muZero" title="Change μ = 0 color">
+                μ = 0
+            </div>
+            <div class="legend-item">
+                <input type="color" class="color-picker" data-color="muPos" title="Change μ = 1 color">
+                μ = 1
+            </div>
+            <button class="reset-colors-btn" onclick="SpiralColors.reset()" title="Reset to default colors">Reset
+                Colors</button>
+        </div>
+    </div>
+    <script src="../canvas-fit.js"></script>
+    <script src="../colors.js"></script>
+    <script src="script.js"></script>
+
+</body>
+
+</html>
