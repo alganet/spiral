@@ -44,15 +44,13 @@ function initSieve() {
     }
 }
 
-initSieve();
-
 function drawSpiral() {
     if (isDrawing) return;
     isDrawing = true;
 
     const SIDES = 6;
 
-    ctx.fillStyle = '#f5f5f5';
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const cx = canvas.width / 2;
@@ -95,7 +93,9 @@ function drawSpiral() {
 
                 if (n < MAX_N) {
                     if (isPrimeArr[n]) {
-                        ctx.strokeStyle = SpiralColors.get('prime');
+                        const baseColor = SpiralColors.get('prime');
+                        const isTwin = (n >= 2 && isPrimeArr[n - 2]) || (n + 2 < MAX_N && isPrimeArr[n + 2]);
+                        ctx.strokeStyle = isTwin ? SpiralColors.darken(baseColor, 0.85) : baseColor;
                     } else {
                         const m = mu[n];
                         if (m === -1) ctx.strokeStyle = SpiralColors.get('muNeg');
@@ -172,10 +172,6 @@ function drawCubeOverlay(radius) {
             y: cy + r * Math.sin(theta)
         };
     }
-
-    // Draw Faces (Shading)
-
-    // Draw Faces (Shading)
 
     // Draw Faces (Shading)
 
@@ -271,7 +267,11 @@ resetBtn.addEventListener('click', () => {
     }, 100);
 });
 
-drawSpiral();
+// Defer heavy calculation to allow UI to update canvas size first
+setTimeout(() => {
+    initSieve();
+    drawSpiral();
+}, 10);
 
 // Expose redraw function for color changes
 window.redrawSpiral = function () {

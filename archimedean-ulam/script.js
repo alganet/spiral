@@ -44,13 +44,11 @@ function initSieve() {
     }
 }
 
-initSieve();
-
 function drawSpiral() {
     if (isDrawing) return;
     isDrawing = true;
 
-    ctx.fillStyle = '#f5f5f5'; // Match CSS --canvas-bg
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const cx = canvas.width / 2;
@@ -76,21 +74,19 @@ function drawSpiral() {
             const x = cx + r * Math.cos(theta);
             const y = cy + r * Math.sin(theta);
 
-            // Check bounds
-            if (x < -50 || x > canvas.width + 50 || y < -50 || y > canvas.height + 50) {
-                // If we are way out, we stop.
-                // Since r grows with sqrt(n), it will eventually leave.
-                // Let's stop when r > max radius of canvas corner
-                if (r > Math.sqrt(cx * cx + cy * cy) + 20) {
-                    isDrawing = false;
-                    statusEl.textContent = `${num}`;
-                    return;
-                }
+            // Check bounds - stop when we hit the inscribed circle
+            const maxRadius = Math.min(canvas.width, canvas.height) / 2;
+            if (r > maxRadius) {
+                isDrawing = false;
+                statusEl.textContent = `${num}`;
+                return;
             }
 
             if (num < MAX_N) {
                 if (isPrimeArr[num]) {
-                    ctx.fillStyle = SpiralColors.get('prime'); // Prime
+                    const baseColor = SpiralColors.get('prime');
+                    const isTwin = (num >= 2 && isPrimeArr[num - 2]) || (num + 2 < MAX_N && isPrimeArr[num + 2]);
+                    ctx.fillStyle = isTwin ? SpiralColors.darken(baseColor, 0.85) : baseColor;
                     ctx.fillRect(x, y, PIXEL_SIZE, PIXEL_SIZE);
                 } else {
                     // Non-prime, color by Mobius
@@ -123,7 +119,11 @@ resetBtn.addEventListener('click', () => {
     }, 100);
 });
 
-drawSpiral();
+// Defer heavy calculation to allow UI to update canvas size first
+setTimeout(() => {
+    initSieve();
+    drawSpiral();
+}, 10);
 
 // Expose redraw function for color changes
 window.redrawSpiral = function () {

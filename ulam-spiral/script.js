@@ -50,7 +50,7 @@ function drawSpiral() {
     if (isDrawing) return;
     isDrawing = true;
 
-    ctx.fillStyle = '#f5f5f5'; // Match CSS --canvas-bg
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const cx = Math.floor(canvas.width / 2);
@@ -92,7 +92,9 @@ function drawSpiral() {
 
             if (num < MAX_N) {
                 if (isPrimeArr[num]) {
-                    ctx.fillStyle = SpiralColors.get('prime'); // Prime
+                    const baseColor = SpiralColors.get('prime');
+                    const isTwin = (num >= 2 && isPrimeArr[num - 2]) || (num + 2 < MAX_N && isPrimeArr[num + 2]);
+                    ctx.fillStyle = isTwin ? SpiralColors.darken(baseColor, 0.85) : baseColor;
                     ctx.fillRect(x, y, PIXEL_SIZE, PIXEL_SIZE);
                 } else {
                     // Non-prime, color by Mobius

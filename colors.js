@@ -8,7 +8,7 @@
 const SpiralColors = {
     // Default colors
     defaults: {
-        prime: '#333333',
+        prime: '#555555',
         muNeg: '#FFB3BA',
         muZero: '#BAFFC9',
         muPos: '#BAE1FF'
@@ -19,7 +19,7 @@ const SpiralColors = {
 
     // Initialize colors from localStorage or defaults
     init() {
-        const saved = localStorage.getItem('spiralColors');
+        const saved = localStorage.getItem('spiralColors-v2');
         if (saved) {
             try {
                 this.current = JSON.parse(saved);
@@ -54,7 +54,7 @@ const SpiralColors = {
     // Update a specific color
     updateColor(type, color) {
         this.current[type] = color;
-        localStorage.setItem('spiralColors', JSON.stringify(this.current));
+        localStorage.setItem('spiralColors-v2', JSON.stringify(this.current));
 
         // Trigger redraw if the page has a redraw function
         if (typeof window.redrawSpiral === 'function') {
@@ -70,7 +70,7 @@ const SpiralColors = {
     // Reset to defaults
     reset() {
         this.current = { ...this.defaults };
-        localStorage.setItem('spiralColors', JSON.stringify(this.current));
+        localStorage.setItem('spiralColors-v2', JSON.stringify(this.current));
 
         // Update color pickers
         const pickers = document.querySelectorAll('.color-picker');
@@ -85,6 +85,22 @@ const SpiralColors = {
         if (typeof window.redrawSpiral === 'function') {
             window.redrawSpiral();
         }
+    },
+
+    // Darken a color by a factor (0-1)
+    darken(hex, factor) {
+        let c = hex.substring(1);
+        if (c.length === 3) c = c.split('').map(x => x + x).join('');
+        let num = parseInt(c, 16);
+        let r = (num >> 16) & 255;
+        let g = (num >> 8) & 255;
+        let b = num & 255;
+
+        r = Math.floor(r * (1 - factor));
+        g = Math.floor(g * (1 - factor));
+        b = Math.floor(b * (1 - factor));
+
+        return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
     }
 };
 

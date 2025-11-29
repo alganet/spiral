@@ -44,13 +44,13 @@ function initSieve() {
     }
 }
 
-initSieve();
+// initSieve will be called in the deferred execution block
 
 function updateInputGlow(n) {
     let color = '';
     if (n < MAX_N) {
         if (isPrimeArr[n]) {
-            color = '#555555'; // Prime: Black
+            color = SpiralColors.get('prime');
         } else {
             const m = mu[n];
 
@@ -79,7 +79,7 @@ function drawSpiral() {
     const SIDES = parseInt(sidesInput.value, 10) || 6;
     updateInputGlow(SIDES);
 
-    ctx.fillStyle = '#f5f5f5';
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const cx = canvas.width / 2;
@@ -104,7 +104,8 @@ function drawSpiral() {
     POLY_VERTS.push(POLY_VERTS[0]);
 
     let layer = 1;
-    const CHUNK_SIZE = 100; // Layers per chunk
+    // Aim for ~1000 segments per frame for visible animation
+    const CHUNK_SIZE = Math.max(1, Math.floor(1000 / SIDES));
 
     function drawChunk() {
         let count = 0;
@@ -119,7 +120,9 @@ function drawSpiral() {
                 // Determine color
                 if (n < MAX_N) {
                     if (isPrimeArr[n]) {
-                        ctx.strokeStyle = SpiralColors.get('prime');
+                        const baseColor = SpiralColors.get('prime');
+                        const isTwin = (n >= 2 && isPrimeArr[n - 2]) || (n + 2 < MAX_N && isPrimeArr[n + 2]);
+                        ctx.strokeStyle = isTwin ? SpiralColors.darken(baseColor, 0.85) : baseColor;
                     } else {
                         const m = mu[n];
                         if (m === -1) ctx.strokeStyle = SpiralColors.get('muNeg');
@@ -186,7 +189,11 @@ sidesInput.addEventListener('input', () => {
     updateInputGlow(val);
 });
 
-drawSpiral();
+// Defer heavy calculation to allow UI to update canvas size first
+setTimeout(() => {
+    initSieve();
+    drawSpiral();
+}, 10);
 
 // Expose redraw function for color changes
 window.redrawSpiral = function () {
@@ -195,3 +202,5 @@ window.redrawSpiral = function () {
         drawSpiral();
     }, 100);
 };
+
+
