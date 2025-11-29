@@ -143,13 +143,13 @@ resetBtn.addEventListener('click', () => {
 });
 
 sidesInput.addEventListener('change', () => {
-    // Validate even number
-    let val = parseInt(sidesInput.value, 10);
-    if (val % 2 !== 0) {
-        val += 1;
-        sidesInput.value = val;
-    }
-    if (val < 6) sidesInput.value = 6;
+    // // Validate even number
+    // let val = parseInt(sidesInput.value, 10);
+    // if (val % 2 !== 0) {
+    //     val += 1;
+    //     sidesInput.value = val;
+    // }
+    // if (val < 6) sidesInput.value = 6;
 
     resetBtn.click();
 });
