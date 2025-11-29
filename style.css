@@ -417,3 +417,7 @@ button:active {
         flex-basis: 100%;
     }
 }
+
+#sidesInput:focus {
+    outline: none;
+}

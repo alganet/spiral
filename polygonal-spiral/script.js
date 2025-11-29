@@ -46,11 +46,38 @@ function initSieve() {
 
 initSieve();
 
+function updateInputGlow(n) {
+    let color = '';
+    if (n < MAX_N) {
+        if (isPrimeArr[n]) {
+            color = '#555555'; // Prime: Black
+        } else {
+            const m = mu[n];
+
+            // muNeg: '#FFB3BA',
+            // muZero: '#BAFFC9',
+            // muPos: '#BAE1FF'
+            if (m === -1) color = '#81363dff'; // Mobius -1: Red
+            else if (m === 0) color = '#04b32a75'; // Mobius 0: Green
+            else if (m === 1) color = '#4983ff97'; // Mobius 1: Blue
+        }
+    }
+
+    if (color) {
+        sidesInput.style.boxShadow = `0 0 10px ${color}`;
+        sidesInput.style.borderColor = color;
+    } else {
+        sidesInput.style.boxShadow = '';
+        sidesInput.style.borderColor = '';
+    }
+}
+
 function drawSpiral() {
     if (isDrawing) return;
     isDrawing = true;
 
     const SIDES = parseInt(sidesInput.value, 10) || 6;
+    updateInputGlow(SIDES);
 
     ctx.fillStyle = '#f5f5f5';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -152,6 +179,11 @@ sidesInput.addEventListener('change', () => {
     // if (val < 6) sidesInput.value = 6;
 
     resetBtn.click();
+});
+
+sidesInput.addEventListener('input', () => {
+    const val = parseInt(sidesInput.value, 10);
+    updateInputGlow(val);
 });
 
 drawSpiral();
