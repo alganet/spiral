@@ -81,6 +81,8 @@ function drawSpiral() {
     const SIDES = parseInt(sidesInput.value, 10) || 6;
     updateInputGlow(SIDES);
 
+    // Reset composite operation to default for proper canvas clearing
+    ctx.globalCompositeOperation = 'source-over';
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -97,7 +99,15 @@ function drawSpiral() {
     const SPACING = Math.min(MAX_SPACING, BASE_SPACING * (SIDES / BASE_SIDES));
     const MAX_LAYERS = Math.floor((Math.min(canvas.width, canvas.height) / 2) / SPACING);
 
-    ctx.lineWidth = SPACING + (SPACING / 2); // Slight overlap to avoid gaps
+    // Use default source-over mode - no composite tricks needed
+    ctx.globalCompositeOperation = 'source-over';
+
+    // Use butt caps and miter joins for precise, non-overlapping lines
+    ctx.lineCap = 'butt';
+    ctx.lineJoin = 'miter';
+
+    // Set line width to exactly match spacing (no overlap)
+    ctx.lineWidth = SPACING;
 
     // Pre-calculate vertices for a unit polygon with high precision
     const POLY_VERTS = [];
