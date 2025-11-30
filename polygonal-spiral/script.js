@@ -23,7 +23,8 @@ let isDrawing = false;
 let redrawTimeout = null;
 
 // Sieve
-const MAX_N = 5000000;
+// Increased to 20M to support very large spirals (uses ~40MB of memory)
+const MAX_N = 20000000;
 const mu = new Int8Array(MAX_N).fill(1);
 const isPrimeArr = new Uint8Array(MAX_N).fill(1);
 
@@ -98,14 +99,16 @@ function drawSpiral() {
 
     ctx.lineWidth = SPACING + (SPACING / 2); // Slight overlap to avoid gaps
 
-    // Pre-calculate vertices for a unit polygon
+    // Pre-calculate vertices for a unit polygon with high precision
     const POLY_VERTS = [];
-    for (let i = 0; i < SIDES; i++) {
-        const theta = i * 2 * Math.PI / SIDES;
-        POLY_VERTS.push({ x: Math.cos(theta), y: Math.sin(theta) });
+    const angleStep = 2 * Math.PI / SIDES;
+    for (let i = 0; i <= SIDES; i++) { // Include i=SIDES for closed loop
+        const theta = i * angleStep;
+        POLY_VERTS.push({
+            x: Math.cos(theta),
+            y: Math.sin(theta)
+        });
     }
-    // Close the loop
-    POLY_VERTS.push(POLY_VERTS[0]);
 
     let layer = 1;
     // Aim for ~1000 segments per frame for visible animation
@@ -115,11 +118,19 @@ function drawSpiral() {
         let count = 0;
 
         while (count < CHUNK_SIZE && layer < MAX_LAYERS) {
+            // Use precise radius calculation
             const r = layer * SPACING;
 
             // Draw SIDES sides for this layer
             for (let s = 0; s < SIDES; s++) {
-                const n = (layer - 1) * SIDES + s + 1;
+                // Use BigInt for precise calculation of large numbers
+                const layerBig = BigInt(layer - 1);
+                const sidesBig = BigInt(SIDES);
+                const sBig = BigInt(s);
+                const nBig = layerBig * sidesBig + sBig + 1n;
+
+                // Convert back to regular number for array access
+                const n = Number(nBig);
 
                 // Determine color
                 if (n < MAX_N) {
@@ -137,19 +148,18 @@ function drawSpiral() {
                     ctx.strokeStyle = '#ddd'; // Out of sieve range
                 }
 
-                // Start and End points of the side
-                const p1 = {
-                    x: cx + r * POLY_VERTS[s].x,
-                    y: cy + r * POLY_VERTS[s].y
-                };
-                const p2 = {
-                    x: cx + r * POLY_VERTS[s + 1].x,
-                    y: cy + r * POLY_VERTS[s + 1].y
-                };
+                // Calculate coordinates with double precision
+                const v1 = POLY_VERTS[s];
+                const v2 = POLY_VERTS[s + 1];
+
+                const p1x = cx + r * v1.x;
+                const p1y = cy + r * v1.y;
+                const p2x = cx + r * v2.x;
+                const p2y = cy + r * v2.y;
 
                 ctx.beginPath();
-                ctx.moveTo(p1.x, p1.y);
-                ctx.lineTo(p2.x, p2.y);
+                ctx.moveTo(p1x, p1y);
+                ctx.lineTo(p2x, p2y);
                 ctx.stroke();
             }
 
