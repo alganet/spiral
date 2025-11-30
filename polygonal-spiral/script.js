@@ -23,8 +23,7 @@ let isDrawing = false;
 let redrawTimeout = null;
 
 // Sieve
-// Increased to 20M to support very large spirals (uses ~40MB of memory)
-const MAX_N = 20000000;
+const MAX_N = 10000000;
 const mu = new Int8Array(MAX_N).fill(1);
 const isPrimeArr = new Uint8Array(MAX_N).fill(1);
 

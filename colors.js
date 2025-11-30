@@ -7,11 +7,12 @@
 
 const SpiralColors = {
     // Default colors
+    // Optimized for contrast
     defaults: {
-        prime: '#555555',
-        muNeg: '#FFB3BA',
-        muZero: '#BAFFC9',
-        muPos: '#BAE1FF'
+        prime: '#444444',
+        muNeg: '#ec646f',
+        muZero: '#92da9f',
+        muPos: '#6a9aca'
     },
 
     // Current colors (loaded from localStorage or defaults)
@@ -19,7 +20,7 @@ const SpiralColors = {
 
     // Initialize colors from localStorage or defaults
     init() {
-        const saved = localStorage.getItem('spiralColors-v2');
+        const saved = localStorage.getItem('spiralColors-v3');
         if (saved) {
             try {
                 this.current = JSON.parse(saved);
@@ -54,7 +55,7 @@ const SpiralColors = {
     // Update a specific color
     updateColor(type, color) {
         this.current[type] = color;
-        localStorage.setItem('spiralColors-v2', JSON.stringify(this.current));
+        localStorage.setItem('spiralColors-v3', JSON.stringify(this.current));
 
         // Trigger redraw if the page has a redraw function
         if (typeof window.redrawSpiral === 'function') {
@@ -70,7 +71,7 @@ const SpiralColors = {
     // Reset to defaults
     reset() {
         this.current = { ...this.defaults };
-        localStorage.setItem('spiralColors-v2', JSON.stringify(this.current));
+        localStorage.setItem('spiralColors-v3', JSON.stringify(this.current));
 
         // Update color pickers
         const pickers = document.querySelectorAll('.color-picker');
