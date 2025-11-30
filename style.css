@@ -420,3 +420,74 @@ button:active {
 #sidesInput:focus {
     outline: none;
 }
+
+.back-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #333;
+    font-size: 20px;
+    transition: all 0.2s ease;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.back-button:hover {
+    background: #fff;
+    transform: translateX(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    color: #000;
+}
+
+.back-button:active {
+    transform: translateX(0);
+    background: #f0f0f0;
+}
+
+@media (max-width: 768px) {
+    .back-button {
+        top: 10px;
+        left: 10px;
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+    }
+}
+
+.home-description {
+    text-align: center;
+    color: #666;
+    max-width: 600px;
+}
+
+.home-links {
+    text-align: center;
+    color: #666;
+    font-size: 0.9em;
+    padding-top: 20px;
+}
+
+.home-link {
+    margin: 0 5px;
+    color: #666;
+    word-break: keep-all;
+    text-wrap: nowrap;
+}
+
+.sides-input {
+    padding: 6px 8px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    width: 50px;
+    font-size: 0.85em;
+}
