@@ -20,6 +20,7 @@ canvas.height = CANVAS_SIZE;
 
 // State
 let isDrawing = false;
+let redrawTimeout = null;
 
 // Sieve
 const MAX_N = 5000000;
@@ -89,10 +90,13 @@ function drawSpiral() {
     // Each layer L has SIDES sides.
     // Numbers n are mapped to sides.
 
-    const SPACING = 2; // Distance between layers
+    const BASE_SPACING = 0.5;
+    const BASE_SIDES = 6;
+    const MAX_SPACING = 0.5;
+    const SPACING = Math.min(MAX_SPACING, BASE_SPACING * (SIDES / BASE_SIDES));
     const MAX_LAYERS = Math.floor((Math.min(canvas.width, canvas.height) / 2) / SPACING);
 
-    ctx.lineWidth = SPACING + 1; // Slight overlap to avoid gaps
+    ctx.lineWidth = SPACING + (SPACING / 2); // Slight overlap to avoid gaps
 
     // Pre-calculate vertices for a unit polygon
     const POLY_VERTS = [];
@@ -181,7 +185,14 @@ sidesInput.addEventListener('change', () => {
     // }
     // if (val < 6) sidesInput.value = 6;
 
-    resetBtn.click();
+    // Debounce: clear existing timeout and set a new one
+    if (redrawTimeout) {
+        clearTimeout(redrawTimeout);
+    }
+    redrawTimeout = setTimeout(() => {
+        resetBtn.click();
+        redrawTimeout = null;
+    }, 300); // Wait 300ms after last change before redrawing
 });
 
 sidesInput.addEventListener('input', () => {
