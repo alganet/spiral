@@ -26,6 +26,7 @@ let redrawTimeout = null;
 const MAX_N = 10000000;
 const mu = new Int8Array(MAX_N).fill(1);
 const isPrimeArr = new Uint8Array(MAX_N).fill(1);
+const omega = new Uint8Array(MAX_N).fill(0);
 
 function initSieve() {
     isPrimeArr[0] = 0;
@@ -36,6 +37,7 @@ function initSieve() {
             for (let j = i; j < MAX_N; j += i) {
                 if (j > i) isPrimeArr[j] = 0;
                 mu[j] = -mu[j];
+                omega[j]++; // Increment distinct prime factor count
             }
             let sq = i * i;
             for (let j = sq; j < MAX_N; j += sq) {
@@ -46,6 +48,117 @@ function initSieve() {
 }
 
 // initSieve will be called in the deferred execution block
+
+
+
+function drawFrequency(SIDES, MAX_LAYERS) {
+    if (!SIDES || SIDES < 3) return;
+
+    const densities = new Float32Array(SIDES);
+    let maxDensity = 0;
+
+    // Calculate average omega per slice
+    for (let s = 0; s < SIDES; s++) {
+        let omegaSum = 0;
+        let totalCount = 0;
+
+        for (let l = 1; l < MAX_LAYERS; l++) {
+            const n = (l - 1) * SIDES + s + 1;
+            if (n < MAX_N) {
+                omegaSum += omega[n];
+                totalCount++;
+            }
+        }
+
+        if (totalCount > 0) {
+            densities[s] = omegaSum / totalCount;
+            if (densities[s] > maxDensity) maxDensity = densities[s];
+        }
+    }
+
+    // Radial Drawing Logic
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+
+    // Calculate spiral radius
+    // SPACING logic from drawSpiral:
+    const BASE_SPACING = 0.5;
+    const BASE_SIDES = 6;
+    const MAX_SPACING = 0.5;
+    const SPACING = Math.min(MAX_SPACING, BASE_SPACING * (SIDES / BASE_SIDES));
+    const spiralRadius = MAX_LAYERS * SPACING;
+
+    // Make wave height proportional to spiral radius for "less flat" look
+    const waveHeight = spiralRadius;
+
+    ctx.beginPath();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.strokeStyle = '#fbff00FF';
+    ctx.lineWidth = 4;
+
+    const points = [];
+    const angleStep = (2 * Math.PI) / SIDES;
+
+    // Collect points
+    for (let s = 0; s < SIDES; s++) {
+        const d = densities[s];
+        // Scale density
+        // Use maxDensity to fill the range, but keep a minimum to avoid division by zero
+        const effectiveMax = Math.max(maxDensity, 1.0);
+
+        // Map density to radius:
+        // High density (Up) -> Edge (spiralRadius)
+        // Low density (Down) -> Center (0)
+        // Formula: r = (d / effectiveMax) * waveHeight
+        // We add a small base to avoid 0 radius which might look glitchy with stroke
+        const minRadius = 0;
+        const r = minRadius + (d / effectiveMax) * (waveHeight - minRadius);
+
+        const theta = (s + 0.5) * angleStep;
+
+        const x = cx + r * Math.cos(theta);
+        const y = cy + r * Math.sin(theta);
+
+        points.push({ x, y });
+    }
+
+    if (points.length > 0) {
+        ctx.moveTo(points[0].x, points[0].y);
+
+        // Use linear interpolation for small number of sides to keep it "tight"
+        // Use smooth curves for large number of sides
+        const useSmoothing = true;
+
+        if (useSmoothing) {
+            for (let i = 0; i < points.length; i++) {
+                const p0 = points[i];
+                const p1 = points[(i + 1) % points.length]; // Wrap around
+                const midX = (p0.x + p1.x) / 2;
+                const midY = (p0.y + p1.y) / 2;
+
+                if (i === 0) {
+                    const last = points[points.length - 1];
+                    const midLast = (last.x + p0.x) / 2;
+                    const midLastY = (last.y + p0.y) / 2;
+                    ctx.moveTo(midLast, midLastY);
+                }
+
+                ctx.quadraticCurveTo(p0.x, p0.y, midX, midY);
+            }
+        } else {
+            // Linear drawing
+            for (let i = 1; i < points.length; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
+            }
+            ctx.closePath();
+        }
+    }
+
+    if (SIDES >= 30) {
+        ctx.closePath();
+    }
+    ctx.stroke();
+}
 
 function updateInputGlow(n) {
     let color = '';
@@ -96,6 +209,8 @@ function drawSpiral() {
     const BASE_SIDES = 6;
     const MAX_SPACING = 0.5;
     const SPACING = Math.min(MAX_SPACING, BASE_SPACING * (SIDES / BASE_SIDES));
+
+    // Revert to full size, wave will be drawn inside/overlay
     const MAX_LAYERS = Math.floor((Math.min(canvas.width, canvas.height) / 2) / SPACING);
 
     // Use default source-over mode - no composite tricks needed
@@ -182,6 +297,7 @@ function drawSpiral() {
         } else {
             isDrawing = false;
             statusEl.textContent = `${layer * SIDES}`;
+            drawFrequency(SIDES, MAX_LAYERS);
         }
     }
 
