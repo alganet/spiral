@@ -23,7 +23,7 @@ let isDrawing = false;
 let redrawTimeout = null;
 
 // Sieve
-const MAX_N = 10000000;
+const MAX_N = 2000000;
 const mu = new Int8Array(MAX_N).fill(1);
 const isPrimeArr = new Uint8Array(MAX_N).fill(1);
 const omega = new Uint8Array(MAX_N).fill(0);
@@ -56,6 +56,7 @@ function drawFrequency(SIDES, MAX_LAYERS) {
 
     const densities = new Float32Array(SIDES);
     let maxDensity = 0;
+    let minDensity = 1;
 
     // Calculate average omega per slice
     for (let s = 0; s < SIDES; s++) {
@@ -73,8 +74,16 @@ function drawFrequency(SIDES, MAX_LAYERS) {
         if (totalCount > 0) {
             densities[s] = omegaSum / totalCount;
             if (densities[s] > maxDensity) maxDensity = densities[s];
+            if (densities[s] < minDensity) minDensity = densities[s];
+        } else {
+            // If no numbers in slice, treat as 0? Or skip?
+            // With 10M numbers, this is unlikely unless SIDES is huge.
+            // If it happens, let's assume minDensity behavior or 0.
         }
     }
+
+    // If minDensity is still Infinity (no data), set to 0
+    if (minDensity === Infinity) minDensity = 0;
 
     // Radial Drawing Logic
     const cx = canvas.width / 2;
@@ -93,8 +102,8 @@ function drawFrequency(SIDES, MAX_LAYERS) {
 
     ctx.beginPath();
     ctx.globalCompositeOperation = 'screen';
-    ctx.strokeStyle = '#fbff00FF';
-    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#fbff00EE';
+    ctx.lineWidth = SIDES < 50 ? 10 : Math.max(1, 400 / SIDES);
 
     const points = [];
     const angleStep = (2 * Math.PI) / SIDES;
@@ -102,17 +111,22 @@ function drawFrequency(SIDES, MAX_LAYERS) {
     // Collect points
     for (let s = 0; s < SIDES; s++) {
         const d = densities[s];
-        // Scale density
-        // Use maxDensity to fill the range, but keep a minimum to avoid division by zero
-        const effectiveMax = Math.max(maxDensity, 1.0);
 
-        // Map density to radius:
-        // High density (Up) -> Edge (spiralRadius)
-        // Low density (Down) -> Center (0)
-        // Formula: r = (d / effectiveMax) * waveHeight
-        // We add a small base to avoid 0 radius which might look glitchy with stroke
-        const minRadius = 0;
-        const r = minRadius + (d / effectiveMax) * (waveHeight - minRadius);
+        // Map density to radius using full range [minDensity, maxDensity] -> [0, spiralRadius]
+        let normalizedD = 0;
+        const range = maxDensity - minDensity;
+
+        if (range > 0.0001) {
+            normalizedD = (d - minDensity) / range;
+        } else {
+            // Let's map to edge to be visible.
+            normalizedD = 1.0;
+        }
+
+        // Formula: r = normalizedD * waveHeight
+        // We add a tiny base to avoid 0 radius issues
+        const minRadius = spiralRadius / 10;
+        const r = minRadius + normalizedD * (waveHeight - minRadius);
 
         const theta = (s + 0.5) * angleStep;
 
