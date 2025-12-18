@@ -10,23 +10,32 @@ SPDX-License-Identifier: ISC
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archimedean Spiral</title>
+    <title>Riemann Zeta</title>
     <link rel="stylesheet" href="../style.css?4">
 </head>
 
 <body>
     <a href="../index.html" class="back-button" title="Back to Home">&#8592;</a>
     <div class="container">
-        <h1>Archimedean Spiral</h1>
+        <h1>Riemann Zeta</h1>
         <canvas id="spiralCanvas"></canvas>
         <div class="legend">
-            <span class="toolbar-status" id="status">⏳</span>
-            <button class="regenerate-btn" id="resetBtn" title="Generate spiral">Generate</button>
+            <span class="toolbar-status" id="status">t = 0</span>
+            <button class="toggle-btn active" id="playBtn" title="Play/Pause animation">Pause</button>
+            <button class="regenerate-btn" id="resetBtn" title="Reset animation">Reset</button>
             <button class="toggle-btn active" id="fitToggle" title="Toggle canvas fit to viewport">Fit</button>
             <div class="legend-divider"></div>
+            <div class="legend-item" style="font-size: 0.8em; color: #666;">
+                t = <input type="number" id="tInput" value="0" step="0.1" class="sides-input" style="width: 60px;">
+            </div>
+            <div class="legend-divider"></div>
             <div class="legend-item">
-                <input type="color" class="color-picker" data-color="prime" title="Change prime color">
-                Prime
+                <input type="color" class="color-picker" data-color="zetaCurve" title="Change curve color">
+                Curve
+            </div>
+            <div class="legend-item">
+                <input type="color" class="color-picker" data-color="zetaSum" title="Change sum segments color">
+                Sum
             </div>
             <div class="legend-item">
                 <input type="color" class="color-picker" data-color="muNeg" title="Change μ = -1 color">
@@ -47,7 +56,6 @@ SPDX-License-Identifier: ISC
     <script src="../canvas-fit.js?7"></script>
     <script src="../colors.js?7"></script>
     <script src="script.js?7"></script>
-
 </body>
 
 </html>

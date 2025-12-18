@@ -30,6 +30,12 @@ This spiral draws concentric polygons where the number of sides $S$ is configura
 - Each layer consists of a polygon with $S$ sides.
 - Numbers are mapped sequentially along the perimeter of these polygons.
 
+### Riemann Zeta (`riemann-zeta`)
+Visualization of the Riemann zeta function $\zeta(s)$ on the critical line $Re(s) = 0.5$.
+- Traces the path of $\zeta(0.5 + it)$ in the complex plane as $t$ increases.
+- Visualizes the partial sum spiral $S_N = \sum_{n=1}^N n^{-s}$ tending towards the function's value.
+- Includes a background colored by the Möbius function $\mu(n)$ mapped to the horizontal range.
+
 ### Coloring Scheme
 All visualizations use a shared coloring strategy based on number properties:
 - **Primes**: Highlighted with a specific color. Twin primes may have a distinct shade.
