@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pioneer Hierarchy</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        /* Specific overrides for Pioneer UI */
+        #controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 300px;
+            font-family: monospace;
+        }
+
+        .breadcrumb {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .option-btn:hover {
+            background: #e0f7fa;
+            border-color: #b2ebf2;
+        }
+
+        .option-score {
+            float: right;
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        #stats {
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #555;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+
+        #resetBtn {
+            margin-top: 10px;
+            background: #ffcdd2;
+            border-color: #ef9a9a;
+        }
+
+        #resetBtn:hover {
+            background: #ef9a9a;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="spiralCanvas"></canvas>
+
+    <div id="controls">
+        <div class="breadcrumb" id="breadcrumb">Path: Primes</div>
+        <div id="options">
+            <!-- Dynamic Buttons go here -->
+            <button class="option-btn">Loading...</button>
+        </div>
+        <div id="stats"></div>
+        <button class="option-btn" id="resetBtn">Reset to Primes</button>
+    </div>
+
+    <script src="../canvas-fit.js"></script>
+    <script src="../colors.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

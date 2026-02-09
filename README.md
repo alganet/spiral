@@ -30,6 +30,15 @@ This spiral draws concentric polygons where the number of sides $S$ is configura
 - Each layer consists of a polygon with $S$ sides.
 - Numbers are mapped sequentially along the perimeter of these polygons.
 
+### Pioneer Hierarchy (`pioneer`)
+A recursive visualization of prime gaps using a **Polar Coordinate System** with a configurable modulus (defaulting to 18).
+-   **Structure**: The plane is divided into slices (rays). Primes predominantly cluster on specific rays based on modular arithmetic (e.g., Mod 6, Mod 18).
+-   **Drill Down**: Users can select specific gap types (e.g., "Twin Primes") to filter the view.
+-   **Visuals**:
+    -   **Arcs**: Connect prime pairs across different rays (jumps).
+    -   **Petals**: Connect prime pairs on the *same* ray (loops/resonance).
+    -   **Massive Pioneers**: Rare, high-density gaps are highlighted to show the "skeleton" of the prime distribution.
+
 ### Riemann Zeta (`riemann-zeta`)
 Visualization of the Riemann zeta function $\zeta(s)$ on the critical line $Re(s) = 0.5$.
 - Traces the path of $\zeta(0.5 + it)$ in the complex plane as $t$ increases.
