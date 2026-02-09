@@ -1,6 +1,6 @@
 
 // Configuration
-const MAX_N = 15000000;
+const MAX_N = 20000000;
 const PIXEL_SIZE = 1;
 const CENTER_X = window.innerWidth / 2;
 const CENTER_Y = window.innerHeight / 2;
@@ -56,29 +56,17 @@ function analyzeGaps(numbers) {
     for (const g in gaps) {
         const occurrences = gaps[g];
         const count = occurrences.length;
-        if (count < 10) continue;
-
-        const earlyCount = occurrences.filter(p => p < blockSize).length;
-        const lateCount = occurrences.filter(p => p > limit - blockSize).length;
-
-        const setEarlyCount = numbers.filter(p => p < blockSize).length;
-        const setLateCount = numbers.filter(p => p > limit - blockSize).length;
-
-        const freqEarly = setEarlyCount ? earlyCount / setEarlyCount : 0;
-        const freqLate = setLateCount ? lateCount / setLateCount : 0;
-
-        let score = (freqLate > 0) ? (freqEarly / freqLate) : ((freqEarly > 0) ? 100 : 0);
+        if (count < 100) continue;
 
         results.push({
             gap: parseInt(g),
             count: count,
-            score: score,
             occurrences: occurrences
         });
     }
 
-    results.sort((a, b) => b.score - a.score);
-    return results.slice(0, 5);
+    results.sort((a, b) => b.count - a.count);
+    return results.slice(0, 10);
 }
 
 // Polar Mapping
@@ -197,19 +185,21 @@ function render() {
     }
 }
 
-function getObjectName(gap, parentPath) {
-    const parentName = parentPath.length > 0 ? parentPath[parentPath.length - 1].name : "Primes";
+function getObjectName(candidate, parentPath) {
+    const parentFullName = parentPath.length > 0 ? parentPath[parentPath.length - 1].name : "Primes";
+    const gap = candidate.gap;
+    const parentName = parentFullName.substring(0, parentFullName.indexOf('(')) || parentFullName;
 
     if (parentName === "Primes") {
-        if (gap === 2) return "Twin Primes";
-        if (gap === 4) return "Cousin Primes";
-        if (gap === 6) return "Sexy Primes";
+        if (gap === 2) return `Twin Primes (${candidate.count})`;
+        if (gap === 4) return `Cousin Primes (${candidate.count})`;
+        if (gap === 6) return `Sexy Primes (${candidate.count})`;
     }
 
-    if (parentName === "Twin Primes" && gap === 6) return "Prime Quadruplets";
-    if (parentName === "Cousin Primes" && gap === 6) return "Cousin Quadruplets";
+    if (parentName === "Twin Primes" && gap === 6) return `Prime Quadruplets (${candidate.count})`;
+    if (parentName === "Cousin Primes" && gap === 6) return `Cousin Quadruplets (${candidate.count})`;
 
-    return `Gap ${gap} in ${parentName}`;
+    return `Gap ${gap} in ${parentName} (${candidate.count})`;
 }
 
 function updateUI() {
@@ -271,9 +261,9 @@ function updateUI() {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
 
-        const name = getObjectName(cand.gap, selectionPath);
+        const name = getObjectName(cand, selectionPath);
 
-        btn.innerHTML = `${name} <small>(Gap ${cand.gap})</small>`;
+        btn.innerHTML = `${name}`;
 
         btn.onclick = () => {
             selectGap(cand, name);
@@ -296,25 +286,26 @@ function visualizeGap(candidate) {
 
     ctx.lineWidth = 1;
 
+    // Performance Optimization: Batch drawing calls
+    // Individual stroke() calls for 100k+ lines causes freezing/disappearing
+    // We use a unified color for the batch to allow massive performance gain.
+
+    const BATCH_SIZE = 2000;
+
+    // Unified Color for Gap Lines (Cyan/Blue)
+    // Dynamic opacity based on density could go here, but fixed is safer for performance
+    ctx.strokeStyle = 'rgba(0, 150, 255, 0.4)';
+
+    ctx.beginPath();
+
     for (let i = 0; i < occurrences.length; i++) {
         const startVal = occurrences[i];
         if (startVal > MAX_N) break;
 
-        const pos = startVal / MAX_N;
-
-        let strokeStyle;
-
-        // Standard Blue/Purple for normal
-        const hue = 200 + Math.floor(pos * 60);
-        const lightness = 40;
-        const opacity = Math.max(0.2, 1 - pos * 1.5);
-        strokeStyle = `hsla(${hue}, 80%, ${lightness}%, ${opacity})`;
-
         const p1 = getPolar(startVal);
         const p2 = getPolar(startVal + gapSize);
 
-        ctx.strokeStyle = strokeStyle;
-        ctx.beginPath();
+        // Move to start
         ctx.moveTo(p1.x, p1.y);
 
         // Arc Logic
@@ -322,31 +313,34 @@ function visualizeGap(candidate) {
         const sameRay = angDiff < 0.01 || Math.abs(angDiff - 2 * Math.PI) < 0.01;
 
         if (sameRay) {
-            // Curve out more significantly to form distinct "Petals" or "Arches"
-            // Scale offset by radius so outer loops are larger
+            // "Petal"
             const loopHeight = 30 + (p1.r / MAX_RADIUS) * 50;
-
             const offsetX = -Math.sin(p1.angle) * loopHeight;
             const offsetY = Math.cos(p1.angle) * loopHeight;
-
-            // Midpoint with offset
             const midX = (p1.x + p2.x) / 2 + offsetX;
             const midY = (p1.y + p2.y) / 2 + offsetY;
-
             ctx.quadraticCurveTo(midX, midY, p2.x, p2.y);
         } else {
+            // Line
             ctx.lineTo(p2.x, p2.y);
         }
 
-        ctx.stroke();
+        // Flush batch
+        if (i > 0 && i % BATCH_SIZE === 0) {
+            ctx.stroke();
+            ctx.beginPath();
+        }
     }
+
+    // Final flush
+    ctx.stroke();
 }
 
 function selectGap(candidate, name) {
     selectionPath.push({ gap: candidate.gap, name: name });
     currentSet = candidate.occurrences;
     updateUI();
-    visualizeGap(candidate, candidate.score > 2.0);
+    visualizeGap(candidate);
 }
 
 function reset() {
