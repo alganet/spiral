@@ -1,6 +1,6 @@
 
 // Configuration
-const MAX_N = 3500000;
+const MAX_N = 15000000;
 const PIXEL_SIZE = 1;
 const CENTER_X = window.innerWidth / 2;
 const CENTER_Y = window.innerHeight / 2;
@@ -99,43 +99,101 @@ function getPolar(n) {
     };
 }
 
-function render() {
-    // Clear Canvas (White/Transparent)
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+// Optimization: Pre-allocate lookup tables
+let cosTable = new Float32Array(0);
+let sinTable = new Float32Array(0);
+let lastModulus = 0;
 
-    // Draw Pizza Slices (Background)
+function updateTrigTables() {
+    if (polarModulus === lastModulus) return;
+
+    cosTable = new Float32Array(polarModulus);
+    sinTable = new Float32Array(polarModulus);
     const sliceAngle = (2 * Math.PI) / polarModulus;
 
-    // Draw Guidelines
+    for (let i = 0; i < polarModulus; i++) {
+        const angle = i * sliceAngle - (Math.PI / 2);
+        cosTable[i] = Math.cos(angle);
+        sinTable[i] = Math.sin(angle);
+    }
+    lastModulus = polarModulus;
+}
+
+function render() {
+    // Clear Canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Ensure tables are up to date
+    updateTrigTables();
+
+    // Draw Nodes (Primes/Current Set) using ImageData for raw speed
+    const width = canvas.width;
+    const height = canvas.height;
+    const imgData = ctx.createImageData(width, height);
+    const data = imgData.data;
+
+    // Get Theme Color
+    const hex = (window.SpiralColors && window.SpiralColors.get('prime')) || '#444444';
+    let rVal = 68, gVal = 68, bVal = 68;
+
+    // Simple Hex Parser
+    if (hex.startsWith('#')) {
+        let c = hex.substring(1);
+        if (c.length === 3) c = c.split('').map(x => x + x).join('');
+        const num = parseInt(c, 16);
+        rVal = (num >> 16) & 255;
+        gVal = (num >> 8) & 255;
+        bVal = num & 255;
+    }
+
+    const aVal = 255;
+
+    // Optimization: Lift constants out of loop
+    const limit = currentSet.length;
+    // We iterate backwards or forwards? internal array is sorted.
+
+    for (let i = 0; i < limit; i++) {
+        const n = currentSet[i];
+        if (n > MAX_N) break;
+
+        // Inline getPolar logic
+        const residue = n % polarModulus;
+        const r = Math.sqrt(n / MAX_N) * MAX_RADIUS;
+
+        // Use lookup tables
+        // x = cx + r * cos(angle)
+        const x = (CENTER_X + r * cosTable[residue]) | 0; // Floor
+        const y = (CENTER_Y + r * sinTable[residue]) | 0; // Floor
+
+        if (x >= 0 && x < width && y >= 0 && y < height) {
+            const idx = (y * width + x) * 4;
+            data[idx] = rVal;
+            data[idx + 1] = gVal;
+            data[idx + 2] = bVal;
+            data[idx + 3] = aVal;
+
+            // Optional: Draw 2x2 or 3x3 if PIXEL_SIZE > 1? 
+            // User set PIXEL_SIZE = 1, so 1 pixel is fine.
+            // If we wanted 3x3 (previous CROSS pattern), we'd need more writes.
+            // For >1M points, 1px is cleaner.
+        }
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+
+    // Draw Pizza Slices (Background) - Keep vector for smooth lines
+    // Draw AFTER ImageData because putImageData clears the rect
+    const sliceAngle = (2 * Math.PI) / polarModulus;
     ctx.lineWidth = 1;
-    ctx.strokeStyle = '#e0e0e0'; // Very light grey
+    ctx.strokeStyle = '#e0e0e0';
     ctx.globalAlpha = 1.0;
 
     for (let i = 0; i < polarModulus; i++) {
-        const ang = i * sliceAngle - (Math.PI / 2);
+        // Use lookup table for endpoints
         ctx.beginPath();
         ctx.moveTo(CENTER_X, CENTER_Y);
-        ctx.lineTo(CENTER_X + MAX_RADIUS * Math.cos(ang), CENTER_Y + MAX_RADIUS * Math.sin(ang));
+        ctx.lineTo(CENTER_X + MAX_RADIUS * cosTable[i], CENTER_Y + MAX_RADIUS * sinTable[i]);
         ctx.stroke();
-
-        // Label removed as per user request
-        // ctx.fillStyle = '#999';
-        // ctx.textAlign = 'center';
-        // ctx.font = '12px monospace';
-        // const labelR = MAX_RADIUS + 20;
-        // ctx.fillText(`${i}`, CENTER_X + labelR * Math.cos(ang), CENTER_Y + labelR * Math.sin(ang));
-    }
-
-    // Draw Nodes (Primes/Current Set)
-    ctx.globalAlpha = 1.0;
-    // Use SpiralColors if available, otherwise fallback
-    const primeColor = (window.SpiralColors && window.SpiralColors.get('prime')) || '#444';
-    ctx.fillStyle = primeColor;
-
-    for (let n of currentSet) {
-        if (n > MAX_N) break;
-        const p = getPolar(n);
-        ctx.fillRect(p.x - 1, p.y - 1, 2, 2);
     }
 }
 
