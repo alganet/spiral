@@ -39,6 +39,13 @@ A recursive visualization of prime gaps using a **Polar Coordinate System** with
     -   **Petals**: Connect prime pairs on the *same* ray (loops/resonance).
     -   **Massive Pioneers**: Rare, high-density gaps are highlighted to show the "skeleton" of the prime distribution.
 
+### Multiplication Clock (`multiplication-clock`)
+Lays the non-zero numbers `1 … p-1` around a ring and shows that **multiplication mod a prime is a rotation**.
+- When `p` is prime, repeatedly multiplying by a single **step-maker** `g` (a primitive root) visits every non-zero number exactly once.
+- Order the ring by that walk and a number's angle is "how many `g`-steps reach it". Then `a × b mod p` is just *adding* those step counts — a constant rotation around the ring.
+- Toggle **Arrange: steps ↔ value** to contrast the neat rotation against how tangled the same multiplication looks in the ordinary by-value order.
+- Toggle **Orbit** to trace `a, a×b, a×b², …`, which draws a regular **star polygon** — the same constant-angle stepping as the polygonal spiral, but driven by `×` instead of `+`.
+
 ### Riemann Zeta (`riemann-zeta`)
 Visualization of the Riemann zeta function $\zeta(s)$ on the critical line $Re(s) = 0.5$.
 - Traces the path of $\zeta(0.5 + it)$ in the complex plane as $t$ increases.

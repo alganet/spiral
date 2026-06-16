@@ -1,0 +1,48 @@
+<!--
+SPDX-FileCopyrightText: 2025 Alexandre Gomes Gaigalas <alganet@gmail.com>
+
+SPDX-License-Identifier: ISC
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplication Clock</title>
+    <link rel="stylesheet" href="../style.css?4">
+</head>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-087KLX3WP7"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-087KLX3WP7');</script>
+
+<body>
+    <a href="../index.html" class="back-button" title="Back to Home">&#8592;</a>
+    <div class="container">
+        <h1>Multiplication Clock</h1>
+        <p class="home-description" style="margin-bottom: 20px;">
+            Lay the numbers <code>1 &hellip; p&minus;1</code> around a ring. When <code>p</code> is prime,
+            repeatedly multiplying by one "step-maker" visits every number exactly once &mdash; so ordering the
+            ring that way turns <b>multiplication mod p</b> into a constant <b>rotation</b>. Switch
+            <i>Arrange</i> to <i>value</i> to see how tangled the same multiplication looks in the ordinary order.
+        </p>
+        <canvas id="clockCanvas"></canvas>
+        <div class="legend">
+            <span class="toolbar-status" id="status" style="min-width: 260px;">&hellip;</span>
+            <div class="legend-divider"></div>
+            <label class="legend-item">p <input type="number" id="primeInput" class="sides-input" min="2" step="1" value="17"></label>
+            <label class="legend-item">a <input type="number" id="aInput" class="sides-input" min="0" step="1" value="3"></label>
+            <label class="legend-item">b <input type="number" id="bInput" class="sides-input" min="0" step="1" value="5"></label>
+            <button class="regenerate-btn" id="generateBtn" title="Recompute">Go</button>
+            <div class="legend-divider"></div>
+            <button class="toggle-btn" id="arrangeBtn" title="Order the ring by g-steps or by value">Arrange: steps</button>
+            <button class="toggle-btn" id="orbitBtn" title="Trace a, a&times;b, a&times;b&sup2;, &hellip;">Orbit: on</button>
+            <button class="toggle-btn active" id="fitToggle" title="Toggle canvas fit to viewport">Fit</button>
+        </div>
+    </div>
+    <script src="../canvas-fit.js?7"></script>
+    <script src="script.js?1"></script>
+
+</body>
+
+</html>
