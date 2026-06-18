@@ -22,7 +22,7 @@ SPDX-License-Identifier: ISC
         <h1>Multiplication Clock</h1>
         <p class="home-description" style="margin-bottom: 20px;">
             Lay the numbers <code>1 &hellip; p&minus;1</code> around a ring. When <code>p</code> is prime,
-            repeatedly multiplying by one "step-maker" visits every number exactly once &mdash; so ordering the
+            repeatedly multiplying by one "step-maker" visits every number exactly once, so ordering the
             ring that way turns <b>multiplication mod p</b> into a constant <b>rotation</b>. Switch
             <i>Arrange</i> to <i>value</i> to see how tangled the same multiplication looks in the ordinary order.
         </p>
@@ -30,13 +30,17 @@ SPDX-License-Identifier: ISC
         <div class="legend">
             <span class="toolbar-status" id="status" style="min-width: 260px;">&hellip;</span>
             <div class="legend-divider"></div>
-            <label class="legend-item">p <input type="number" id="primeInput" class="sides-input" min="2" step="1" value="17"></label>
+            <label class="legend-item">p <input type="number" id="primeInput" class="sides-input" min="2" step="1" value="13"></label>
             <label class="legend-item">a <input type="number" id="aInput" class="sides-input" min="0" step="1" value="3"></label>
             <label class="legend-item">b <input type="number" id="bInput" class="sides-input" min="0" step="1" value="5"></label>
             <button class="regenerate-btn" id="generateBtn" title="Recompute">Go</button>
             <div class="legend-divider"></div>
             <button class="toggle-btn" id="arrangeBtn" title="Order the ring by g-steps or by value">Arrange: steps</button>
             <button class="toggle-btn" id="orbitBtn" title="Trace a, a&times;b, a&times;b&sup2;, &hellip;">Orbit: on</button>
+            <div class="legend-divider"></div>
+            <button class="toggle-btn" id="slicesBtn" title="Split the one big ring into several small rings">Slices: off</button>
+            <label class="legend-item">cut <input type="text" id="slicesInput" class="sides-input" style="width: 70px;" value="3,4"></label>
+            <div class="legend-divider"></div>
             <button class="toggle-btn active" id="fitToggle" title="Toggle canvas fit to viewport">Fit</button>
         </div>
     </div>

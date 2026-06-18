@@ -1,0 +1,75 @@
+<!--
+SPDX-FileCopyrightText: 2026 Alexandre Gomes Gaigalas <alganet@gmail.com>
+
+SPDX-License-Identifier: ISC
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Möbius × Landings</title>
+    <link rel="stylesheet" href="../style.css?4">
+</head>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-087KLX3WP7"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-087KLX3WP7');</script>
+
+<body>
+    <a href="../index.html" class="back-button" title="Back to Home">&#8592;</a>
+    <div class="container">
+        <h1>Möbius × Landings</h1>
+        <p style="max-width:840px;margin:0 auto 1rem;line-height:1.5;opacity:.85;font-size:.95rem;">
+            The <b>dots</b> are the multiplication clock (orange = <b>full-tour</b> numbers, blue = <b>squares</b>,
+            black = <b>laps</b>); the <b>colors</b> are the Möbius "shadow" of how each number factors. Spin to a
+            <b>lock</b>: try <a href="#sides=125&p=5&laps=1&qr=0&roots=1">sides 125, p 5</a>. The landing dots snap
+            into crisp <b>spokes</b> sitting right on the shadow's own spokes, both pinned to the same grid, and for
+            that spiral they're fully predictable: the orange full-tour lines are essentially projections of the black
+            laps. So one clock lays a prime's × structure bare. What it <i>can't</i> show is how that shifts from prime
+            to prime, whether a number is full-tour depends on which clock you're on, and "how often, across
+            <i>all</i> primes?" is a question no single clock answers. So we stacked them →
+            <a href="../prime-census/index.html"><b>Prime-Field Census</b></a>.
+        </p>
+        <canvas id="spiralCanvas"></canvas>
+        <div class="legend">
+            <span class="toolbar-status" id="status">⏳</span>
+            <label class="legend-item" title="Polygon sides = the additive layout (position)">
+                sides
+                <input type="number" id="sidesInput" class="sides-input" min="3" step="1" value="120">
+            </label>
+            <label class="legend-item" title="Prime p for the multiplication clock the landings live on">
+                mod&nbsp;p
+                <input type="number" id="primeInput" class="sides-input" min="2" step="1" value="211">
+            </label>
+            <button class="toggle-btn active" id="lapToggle" title="Mark n ≡ 1 (mod p): full laps of the × clock">● Laps</button>
+            <button class="toggle-btn" id="qrToggle" title="Mark quadratic residues (the square landings)">● Squares</button>
+            <button class="toggle-btn" id="rootToggle" title="Mark primitive roots (generators of the × clock)">● Roots</button>
+            <button class="regenerate-btn" id="resetBtn" title="Generate spiral">Generate</button>
+            <button class="toggle-btn active" id="fitToggle" title="Toggle canvas fit to viewport">Fit</button>
+            <div class="legend-divider"></div>
+            <span class="legend-item" id="infoEl" title="Prime used and its generator"></span>
+            <div class="legend-divider"></div>
+            <div class="legend-item">
+                <input type="color" class="color-picker" data-color="prime" title="Change prime color"> Prime
+            </div>
+            <div class="legend-item">
+                <input type="color" class="color-picker" data-color="muNeg" title="Change μ = -1 color"> μ = -1
+            </div>
+            <div class="legend-item">
+                <input type="color" class="color-picker" data-color="muZero" title="Change μ = 0 color"> μ = 0
+            </div>
+            <div class="legend-item">
+                <input type="color" class="color-picker" data-color="muPos" title="Change μ = 1 color"> μ = 1
+            </div>
+            <button class="reset-colors-btn" onclick="SpiralColors.reset()" title="Reset to default colors">Reset
+                Colors</button>
+        </div>
+    </div>
+    <script src="../canvas-fit.js?7"></script>
+    <script src="../colors.js?7"></script>
+    <script src="script.js?1"></script>
+
+</body>
+
+</html>

@@ -21,6 +21,8 @@ const bInput = document.getElementById('bInput');
 const generateBtn = document.getElementById('generateBtn');
 const arrangeBtn = document.getElementById('arrangeBtn');
 const orbitBtn = document.getElementById('orbitBtn');
+const slicesBtn = document.getElementById('slicesBtn');
+const slicesInput = document.getElementById('slicesInput');
 
 // Initialize canvas with shared fit mode
 CanvasFit.init(canvas);
@@ -31,6 +33,7 @@ canvas.height = CANVAS_SIZE;
 // State
 let arrangeBySteps = true;   // ring ordered by g-steps (true) or by value (false)
 let showOrbit = true;        // trace a, a*b, a*b^2, ... around the ring
+let slicesMode = false;      // split the one big ring into several small rings
 let animToken = 0;           // cancels in-flight animation when we redraw
 
 const COLORS = {
@@ -55,6 +58,11 @@ function isPrime(n) {
         if (n % i === 0) return false;
     }
     return true;
+}
+
+function gcd(a, b) {
+    while (b) { [a, b] = [b, a % b]; }
+    return a;
 }
 
 function distinctPrimeFactors(n) {
@@ -313,6 +321,11 @@ function render() {
     const b = ((bRaw % p) + p) % p;
     const product = (a * b) % p;
 
+    if (slicesMode) {
+        renderSlices(p, g, a, b, product, myToken);
+        return;
+    }
+
     clear();
     drawRing();
 
@@ -404,6 +417,165 @@ function clearAndBase(seq, hop) {
 }
 
 // ---------------------------------------------------------------------------
+// Slices mode: cut the one big ring (p-1 slots) into several small rings.
+// A number's position on the big ring is its step-count k; on a small ring of
+// size s it sits at slot (k mod s). Multiplying adds step-counts, so each small
+// ring just rotates by (step(b) mod s) -- independently, IF the cut is "clean":
+// the sizes multiply to p-1 and share no common factors, so every number lands
+// on a unique combination of slots.
+// ---------------------------------------------------------------------------
+
+function parseSlices() {
+    return slicesInput.value.split(/[,\sx*]+/)
+        .map(t => parseInt(t, 10))
+        .filter(n => Number.isFinite(n) && n >= 2);
+}
+
+// Is the cut a clean tiling of the p-1 numbers? Find a collision if not.
+function analyzeCut(p, sizes) {
+    const n = p - 1;
+    let prod = 1;
+    for (const s of sizes) prod *= s;
+
+    const buckets = new Map();
+    let collision = null;
+    for (let k = 0; k < n; k++) {
+        const key = sizes.map(s => k % s).join(',');
+        if (buckets.has(key)) {
+            if (!collision) collision = [MODEL.valueAt[buckets.get(key)], MODEL.valueAt[k]];
+        } else {
+            buckets.set(key, k);
+        }
+    }
+    const clean = prod === n && buckets.size === n;
+    return { prod, clean, collision, distinct: buckets.size };
+}
+
+function smallRingLayout(m) {
+    const W = canvas.width, H = canvas.height;
+    const spacing = W / m;
+    const r = Math.min(spacing * 0.36, H * 0.34);
+    const rings = [];
+    for (let i = 0; i < m; i++) {
+        rings.push({ cx: spacing * (i + 0.5), cy: H * 0.5, r });
+    }
+    return rings;
+}
+
+function slotAngle(j, s) {
+    return -Math.PI / 2 + (2 * Math.PI * j) / s;
+}
+
+function drawSmallRing(ring, s) {
+    const { cx, cy, r } = ring;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+    ctx.strokeStyle = '#eeeeee';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    const showLabels = s <= 36;
+    const dotR = s <= 24 ? 4 : s <= 80 ? 3 : 2;
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let j = 0; j < s; j++) {
+        const a = slotAngle(j, s);
+        const x = cx + r * Math.cos(a), y = cy + r * Math.sin(a);
+        ctx.beginPath();
+        ctx.arc(x, y, dotR, 0, 2 * Math.PI);
+        ctx.fillStyle = COLORS.ring;
+        ctx.fill();
+        if (showLabels) {
+            ctx.fillStyle = '#999';
+            ctx.fillText(String(j), cx + (r + 14) * Math.cos(a), cy + (r + 14) * Math.sin(a));
+        }
+    }
+}
+
+function drawSlotDot(ring, slot, s, color, radius) {
+    const a = slotAngle(slot, s);
+    const x = ring.cx + ring.r * Math.cos(a), y = ring.cy + ring.r * Math.sin(a);
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+}
+
+function drawSlotArc(ring, fromSlot, s, deltaSlots, progress, color) {
+    if (deltaSlots === 0) return;
+    const a0 = slotAngle(fromSlot, s);
+    const sweep = (2 * Math.PI * deltaSlots) / s;
+    const a1 = a0 + sweep * progress;
+    const ar = ring.r * 0.84;
+    ctx.beginPath();
+    ctx.arc(ring.cx, ring.cy, ar, a0, a1);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    drawArrowHead(ring.cx + ar * Math.cos(a1), ring.cy + ar * Math.sin(a1), a1 + Math.PI / 2, color);
+}
+
+function renderSlices(p, g, a, b, product, myToken) {
+    const sizes = parseSlices();
+    if (sizes.length === 0) { clear(); setStatus('enter a cut like <code>3,4</code>'); return; }
+
+    const factText = `${p - 1} = ` + (distinctPrimeFactors(p - 1).length === 1 && (p - 1) > 1
+        ? `${distinctPrimeFactors(p - 1)[0]}^k (a prime power &mdash; can't be split into independent rings)`
+        : distinctPrimeFactors(p - 1).join(' &middot; ') + ' &hellip;');
+
+    if (a === 0 || b === 0) {
+        clear();
+        setStatus(`0 isn't on the rings (it's not a power of g). pick a, b &ne; 0. &nbsp;<span style="color:#888">${factText}</span>`);
+        return;
+    }
+
+    const info = analyzeCut(p, sizes);
+    const ka = MODEL.stepOf[a], kb = MODEL.stepOf[b], kp = MODEL.stepOf[product];
+
+    // status line
+    let verdict;
+    if (info.prod !== p - 1) {
+        verdict = `<span style="color:#c0392b">&times; sizes multiply to ${info.prod}, not ${p - 1} &mdash; doesn't tile the ring</span>`;
+    } else if (!info.clean && info.collision) {
+        verdict = `<span style="color:#c0392b">&times; not independent: ${info.collision[0]} and ${info.collision[1]} land on the same slots</span>`;
+    } else {
+        verdict = `<span style="color:#2e7d32">&#10003; clean cut &mdash; the rings spin independently</span>`;
+    }
+    setStatus(`${a} &times; ${b} &equiv; <b>${product}</b> (mod ${p}) &nbsp; cut ${sizes.join('&times;')} ` +
+        `&nbsp;${verdict}<br><span style="color:#888">on each ring, slot rotates by step(b)=${kb} mod size${
+            sizes.length ? ': ' + sizes.map(s => `+${kb % s}`).join(', ') : ''}</span>`);
+
+    const rings = smallRingLayout(sizes.length);
+
+    function frame(t) {
+        if (myToken !== animToken) return;
+        clear();
+        for (let i = 0; i < sizes.length; i++) {
+            const s = sizes[i], ring = rings[i];
+            drawSmallRing(ring, s);
+            const aSlot = ka % s, pSlot = kp % s, delta = kb % s;
+            drawSlotArc(ring, aSlot, s, delta, t, COLORS.product);
+            drawSlotDot(ring, aSlot, s, COLORS.a, 7);
+            drawSlotDot(ring, pSlot, s, COLORS.product, 6);
+            // ring caption
+            ctx.fillStyle = COLORS.text;
+            ctx.font = '13px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(`mod ${s}`, ring.cx, ring.cy - ring.r - 30);
+            ctx.fillStyle = '#888';
+            ctx.font = '11px monospace';
+            ctx.fillText(`${aSlot} +${delta} → ${pSlot}`, ring.cx, ring.cy + ring.r + 30);
+        }
+        if (t < 1) requestAnimationFrame(() => frame(Math.min(1, t + 0.06)));
+    }
+    frame(0);
+}
+
+// ---------------------------------------------------------------------------
 // Controls
 // ---------------------------------------------------------------------------
 
@@ -426,6 +598,19 @@ orbitBtn.addEventListener('click', () => {
     orbitBtn.classList.toggle('active', showOrbit);
     render();
 });
+
+slicesBtn.addEventListener('click', () => {
+    slicesMode = !slicesMode;
+    slicesBtn.textContent = slicesMode ? 'Slices: on' : 'Slices: off';
+    slicesBtn.classList.toggle('active', slicesMode);
+    // these only apply to the single big ring
+    arrangeBtn.disabled = slicesMode;
+    orbitBtn.disabled = slicesMode;
+    render();
+});
+
+slicesInput.addEventListener('change', render);
+slicesInput.addEventListener('keydown', e => { if (e.key === 'Enter') render(); });
 
 window.redrawSpiral = function () {
     const size = window.CANVAS_SIZE || CanvasFit.getSize();
