@@ -121,7 +121,10 @@ function drawSpiral() {
     const BASE_SPACING = 0.5, BASE_SIDES = 6, MAX_SPACING = 0.5;
     const SPACING = Math.min(MAX_SPACING, BASE_SPACING * (SIDES / BASE_SIDES));
     const MAX_LAYERS = Math.floor((Math.min(canvas.width, canvas.height) / 2) / SPACING);
-    const DOT = 2.2;
+    // Marker radius is tied to the same SPACING grid the polygon sides live on, so a
+    // dot covers roughly one layer of the backing spiral instead of blobbing across
+    // many. Small floor keeps it visible at the (tiny) 0.5px spacing.
+    const DOT = Math.max(0.9, SPACING * 1.5);
 
     ctx.lineCap = 'butt'; ctx.lineJoin = 'miter'; ctx.lineWidth = SPACING;
 
@@ -151,9 +154,12 @@ function drawSpiral() {
                 else if (showLap && isLap[res]) mark = C_LAP;
                 else if (showQR && isQR[res]) mark = C_QR;
                 if (mark) {
+                    // Land on the exact midpoint of the SAME side stroke that draws n,
+                    // so the marker and the backing polygonal cell share one center.
+                    const mx = (p1x + p2x) / 2, my = (p1y + p2y) / 2;
                     ctx.fillStyle = mark;
                     ctx.beginPath();
-                    ctx.arc((p1x + p2x) / 2, (p1y + p2y) / 2, DOT, 0, 2 * Math.PI);
+                    ctx.arc(mx, my, DOT, 0, 2 * Math.PI);
                     ctx.fill();
                 }
             }
